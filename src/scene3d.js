@@ -2,8 +2,8 @@
 // Renders ground, road network, lane markings, statics, dynamic actors, ego vehicle,
 // camera frustum overlay, and trajectory trails. Orbit + chase cam toggle.
 
-const THREE = window.THREE;
-const { OrbitControls } = THREE;
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 export class Scene3D {
   constructor(container) {
@@ -153,7 +153,6 @@ export class Scene3D {
     this.gRoad.add(line);
 
     // Edge lines
-    const perpX = -Math.cos(-ang), perpZ = Math.sin(-ang);
     const ox = (w / 2) * Math.cos(ang);
     const oz = -(w / 2) * Math.sin(ang);
     const edgeMat = new THREE.LineBasicMaterial({ color: 0x394454 });
@@ -220,7 +219,6 @@ export class Scene3D {
         new THREE.MeshStandardMaterial({ color: 0x1a222d, roughness: 0.9 })
       );
       mesh.position.set(s.at[0], h / 2, s.at[1]);
-      // Window stripe emissive lines
       const edges = new THREE.LineSegments(
         new THREE.EdgesGeometry(mesh.geometry),
         new THREE.LineBasicMaterial({ color: 0x2b3647 })
@@ -302,7 +300,6 @@ export class Scene3D {
     });
 
     if (isEgo) {
-      // Halo ring on ground
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(2.6, 2.8, 48),
         new THREE.MeshBasicMaterial({ color: 0x2fd1c1, transparent: true, opacity: 0.45 })
@@ -381,7 +378,6 @@ export class Scene3D {
 
   update(state) {
     if (!this.ego || !state) return;
-    // Ego
     this.ego.position.set(state.ego.x, 0, state.ego.z);
     this.ego.rotation.y = state.ego.heading;
     const braking = state.ego.braking || state.ego.v < 0.3;
@@ -389,7 +385,6 @@ export class Scene3D {
       m.material.emissiveIntensity = braking ? 1.1 : 0.1;
     });
 
-    // Actors
     state.actors.forEach((a) => {
       const m = this.actorMeshes.get(a.id);
       if (!m) return;
@@ -397,7 +392,6 @@ export class Scene3D {
       m.rotation.y = a.heading;
     });
 
-    // Chase/top cam
     if (this.chaseCam) {
       const c = this.camera;
       const tx = state.ego.x - Math.sin(state.ego.heading) * 10;
@@ -427,7 +421,6 @@ export class Scene3D {
 
   resetView() {
     this.chaseCam = false; this.topCam = false;
-    // Angle viewpoint down the ego start so the car is visible on initial frame
     const egoStart = this.ego ? this.ego.position : new THREE.Vector3(0, 0, 0);
     this.camera.position.set(egoStart.x + 30, 28, egoStart.z - 20);
     this.controls.target.set(egoStart.x, 0, egoStart.z + 10);

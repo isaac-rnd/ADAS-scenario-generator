@@ -1,14 +1,16 @@
 // Map / OpenDRIVE viewer — shows all scenarios on the current map layout.
-const { useState: mUseState, useMemo: mUseMemo, useEffect: mUseEffect, useRef: mUseRef } = React;
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Icon } from "./common.jsx";
+import { MAPS } from "../scenarios.js";
 
-function MapView({ scenarios, onLaunch }) {
-  const mapKeys = mUseMemo(() => Object.keys(window.MAPS), []);
-  const [mapKey, setMapKey] = mUseState(mapKeys[0]);
-  const map = window.MAPS[mapKey];
+export function MapView({ scenarios, onLaunch }) {
+  const mapKeys = useMemo(() => Object.keys(MAPS), []);
+  const [mapKey, setMapKey] = useState(mapKeys[0]);
+  const map = MAPS[mapKey];
   const scs = scenarios.filter((s) => s.map === mapKey);
-  const canvasRef = mUseRef(null);
+  const canvasRef = useRef(null);
 
-  mUseEffect(() => {
+  useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
     const size = 560;
@@ -24,7 +26,6 @@ function MapView({ scenarios, onLaunch }) {
     const toX = (x) => size / 2 + x * s;
     const toZ = (z) => size / 2 + z * s;
 
-    // Grid
     ctx.strokeStyle = "rgba(120,160,190,0.06)";
     for (let i = 0; i <= 10; i++) {
       const p = (i / 10) * size;
@@ -32,7 +33,6 @@ function MapView({ scenarios, onLaunch }) {
       ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(size, p); ctx.stroke();
     }
 
-    // Segments
     ctx.strokeStyle = "#2a3446";
     (map.segments || []).forEach((seg) => {
       ctx.lineWidth = seg.width * s;
@@ -51,14 +51,12 @@ function MapView({ scenarios, onLaunch }) {
       ctx.setLineDash([]);
     });
 
-    // Crosswalks
     (map.crosswalks || []).forEach((cw) => {
       ctx.fillStyle = "rgba(219,227,236,0.6)";
       if (cw.axis === "z") ctx.fillRect(toX(cw.x) - (cw.w * s) / 2, toZ(cw.z - cw.l / 2), cw.w * s, cw.l * s);
       else ctx.fillRect(toX(cw.x - cw.l / 2), toZ(cw.z) - (cw.w * s) / 2, cw.l * s, cw.w * s);
     });
 
-    // Scenario ego routes — overlay
     scs.forEach((sc, i) => {
       const color = ["#2fd1c1", "#f2d17a", "#7aa7e0", "#e07abd"][i % 4];
       ctx.strokeStyle = color;
@@ -75,7 +73,6 @@ function MapView({ scenarios, onLaunch }) {
       ctx.beginPath(); ctx.arc(toX(sN[0]), toZ(sN[1]), 4, 0, Math.PI * 2); ctx.fill();
     });
 
-    // Compass
     ctx.fillStyle = "rgba(120,160,190,0.5)";
     ctx.font = "10px JetBrains Mono";
     ctx.fillText("N", size / 2 - 4, 14);
@@ -90,7 +87,7 @@ function MapView({ scenarios, onLaunch }) {
         <div style={{ display: "flex", gap: 8, marginBottom: 12, alignSelf: "flex-start" }}>
           {mapKeys.map((k) => (
             <button key={k} className={`btn ${mapKey === k ? "primary" : ""}`} onClick={() => setMapKey(k)}>
-              {window.MAPS[k].name}
+              {MAPS[k].name}
             </button>
           ))}
         </div>
@@ -117,5 +114,3 @@ function MapView({ scenarios, onLaunch }) {
     </div>
   );
 }
-
-Object.assign(window, { MapView });

@@ -1,7 +1,7 @@
 // Shared utility components — chips, metrics, icons, panels.
-const { useState, useEffect, useRef, useMemo, useCallback, Fragment } = React;
+import React from "react";
 
-function Icon({ name, size = 14, stroke = 1.5 }) {
+export function Icon({ name, size = 14, stroke = 1.5 }) {
   const s = size;
   const common = {
     width: s, height: s, viewBox: "0 0 24 24", fill: "none",
@@ -40,7 +40,7 @@ function Icon({ name, size = 14, stroke = 1.5 }) {
   return <svg {...common}>{paths[name] || null}</svg>;
 }
 
-function Chip({ variant = "default", children, dot = false, style }) {
+export function Chip({ variant = "default", children, dot = false, style }) {
   return (
     <span className={`chip ${variant !== "default" ? variant : ""}`} style={style}>
       {dot && <span className="dot" style={{ background: "currentColor" }}></span>}
@@ -49,7 +49,7 @@ function Chip({ variant = "default", children, dot = false, style }) {
   );
 }
 
-function Panel({ title, right, children, style, bodyStyle, noPad = false }) {
+export function Panel({ title, right, children, style, bodyStyle, noPad = false }) {
   return (
     <div className="panel" style={style}>
       {title && (
@@ -63,7 +63,7 @@ function Panel({ title, right, children, style, bodyStyle, noPad = false }) {
   );
 }
 
-function Metric({ label, value, unit, sub, tone = "default" }) {
+export function Metric({ label, value, unit, sub, tone = "default" }) {
   const toneColor = {
     default: "var(--fg-0)", good: "var(--pass)", warn: "var(--warn)", bad: "var(--fail)",
   }[tone];
@@ -87,7 +87,7 @@ function Metric({ label, value, unit, sub, tone = "default" }) {
   );
 }
 
-function Bar({ value, max = 1, tone = "accent" }) {
+export function Bar({ value, max = 1, tone = "accent" }) {
   const pct = Math.max(0, Math.min(1, value / max)) * 100;
   const color = {
     accent: "var(--accent)", pass: "var(--pass)", warn: "var(--warn)", fail: "var(--fail)", mag: "var(--mag)",
@@ -99,7 +99,7 @@ function Bar({ value, max = 1, tone = "accent" }) {
   );
 }
 
-function VerdictBadge({ verdict }) {
+export function VerdictBadge({ verdict }) {
   const map = {
     PASS:       { label: "PASS", variant: "pass" },
     FAIL:       { label: "FAIL", variant: "fail" },
@@ -139,5 +139,3 @@ function VerdictBadge({ verdict }) {
     </div>
   );
 }
-
-Object.assign(window, { Icon, Chip, Panel, Metric, Bar, VerdictBadge });

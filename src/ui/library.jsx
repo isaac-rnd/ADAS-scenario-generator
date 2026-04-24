@@ -1,10 +1,11 @@
 // Library view — browse scenarios, launch a run.
-const { useState: lUseState, useMemo: lUseMemo } = React;
+import { useState, useMemo } from "react";
+import { Icon, Chip } from "./common.jsx";
 
-function LibraryView({ scenarios, onLaunch, onNew, onOpen }) {
-  const [query, setQuery] = lUseState("");
-  const [category, setCategory] = lUseState("All");
-  const categories = lUseMemo(() => ["All", ...Array.from(new Set(scenarios.map(s => s.category)))], [scenarios]);
+export function LibraryView({ scenarios, onLaunch, onNew, onOpen }) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState("All");
+  const categories = useMemo(() => ["All", ...Array.from(new Set(scenarios.map(s => s.category)))], [scenarios]);
   const filtered = scenarios.filter(s =>
     (category === "All" || s.category === category) &&
     (s.name.toLowerCase().includes(query.toLowerCase()) || s.id.toLowerCase().includes(query.toLowerCase()))
@@ -179,5 +180,3 @@ function ThumbSVG({ kind }) {
     </svg>
   );
 }
-
-Object.assign(window, { LibraryView });
