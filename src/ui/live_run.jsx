@@ -1,26 +1,27 @@
 // Live Run view — 3D viewport, playback, metrics panel, sensor tiles.
-const { useState: rUseState, useEffect: rUseEffect, useRef: rUseRef, useMemo: rUseMemo } = React;
+import { useState, useEffect, useRef } from "react";
+import { Icon, Chip, Bar, Metric, VerdictBadge } from "./common.jsx";
+import { CameraTile, LidarTile, RadarTile } from "./sensor_tiles.jsx";
+import { Scene3D } from "../scene3d.js";
+import { MAPS } from "../scenarios.js";
 
-function LiveRunView({ sim, run, scenario, onEnd }) {
-  const [state, setState] = rUseState(() => sim.snapshot());
-  const [camMode, setCamMode] = rUseState("orbit");
-  const [sensorTab, setSensorTab] = rUseState("all");
-  const viewportRef = rUseRef(null);
-  const sceneRef = rUseRef(null);
+export function LiveRunView({ sim, run, scenario, onEnd }) {
+  const [state, setState] = useState(() => sim.snapshot());
+  const [camMode, setCamMode] = useState("orbit");
+  const viewportRef = useRef(null);
+  const sceneRef = useRef(null);
 
-  // Init Three.js
-  rUseEffect(() => {
+  useEffect(() => {
     const container = viewportRef.current;
     if (!container) return;
-    const s = new window.Scene3D(container);
-    const map = window.MAPS[scenario.map];
+    const s = new Scene3D(container);
+    const map = MAPS[scenario.map];
     s.setScenario(scenario, map);
     sceneRef.current = s;
     return () => s.dispose();
   }, [scenario]);
 
-  // Subscribe to sim ticks
-  rUseEffect(() => {
+  useEffect(() => {
     const un = sim.onTick((snap) => {
       setState(snap);
       sceneRef.current?.update(snap);
@@ -49,7 +50,6 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
 
   return (
     <div style={{ height: "100%", display: "grid", gridTemplateRows: "auto 1fr", overflow: "hidden" }}>
-      {/* Scenario header */}
       <div style={{
         padding: "10px 16px", borderBottom: "1px solid var(--line)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -69,13 +69,10 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
         <VerdictBadge verdict={verdict} />
       </div>
 
-      {/* Main grid: viewport | right panel */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", overflow: "hidden" }}>
         <div style={{ display: "grid", gridTemplateRows: "1fr 180px", overflow: "hidden" }}>
-          {/* 3D viewport */}
           <div style={{ position: "relative", background: "#07090c", borderBottom: "1px solid var(--line)" }}>
             <div ref={viewportRef} style={{ position: "absolute", inset: 0 }} />
-            {/* Top-left HUD */}
             <div style={{ position: "absolute", top: 10, left: 10, display: "flex", flexDirection: "column", gap: 6 }}>
               <div className="mono" style={{
                 fontSize: 10, color: "var(--accent)", background: "rgba(8,12,16,0.75)",
@@ -90,7 +87,6 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
                 EGO · v={state.ego.v.toFixed(1)}m/s · ψ={((state.ego.heading * 180) / Math.PI).toFixed(0)}° · xyz=[{state.ego.x.toFixed(1)},0,{state.ego.z.toFixed(1)}]
               </div>
             </div>
-            {/* Top-right cam switch */}
             <div style={{ position: "absolute", top: 10, right: 10, display: "flex", gap: 4, background: "rgba(8,12,16,0.8)", border: "1px solid var(--line)", borderRadius: 3, padding: 3 }}>
               {[
                 ["orbit", "chase", "Orbit"],
@@ -110,7 +106,6 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
               ))}
             </div>
 
-            {/* Bottom playback bar */}
             <div style={{
               position: "absolute", left: 10, right: 10, bottom: 10,
               background: "rgba(8,12,16,0.88)", backdropFilter: "blur(6px)",
@@ -118,7 +113,7 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
               display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 14,
             }}>
               <div style={{ display: "flex", gap: 6 }}>
-                <button className="btn" onClick={() => { sim.t = 0; sim.ego = null; onEnd(); }} title="Stop">
+                <button className="btn" onClick={() => { sim.stop(); onEnd(); }} title="Stop">
                   <Icon name="stop" size={12} />
                 </button>
                 <button className="btn primary" onClick={togglePlay}>
@@ -149,7 +144,6 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
             </div>
           </div>
 
-          {/* Sensor tiles strip */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1.3fr", gap: 8, padding: 8, overflow: "hidden" }}>
             <SensorTileFrame title="CAM·FRONT" color="accent">
               <SizedTile render={(w, h) => <CameraTile state={state} width={w} height={h} />} />
@@ -166,7 +160,6 @@ function LiveRunView({ sim, run, scenario, onEnd }) {
           </div>
         </div>
 
-        {/* Right panel */}
         <div style={{ borderLeft: "1px solid var(--line)", overflow: "auto", background: "var(--bg-0)" }}>
           <RightPanel state={state} scenario={scenario} />
         </div>
@@ -200,9 +193,9 @@ function SensorTileFrame({ title, color = "default", children }) {
 }
 
 function SizedTile({ render }) {
-  const ref = rUseRef(null);
-  const [d, setD] = rUseState({ w: 0, h: 0 });
-  rUseEffect(() => {
+  const ref = useRef(null);
+  const [d, setD] = useState({ w: 0, h: 0 });
+  useEffect(() => {
     const el = ref.current;
     if (!el) return;
     const ro = new ResizeObserver(() => {
@@ -260,7 +253,6 @@ function RightPanel({ state, scenario }) {
   const m = state.metrics;
   return (
     <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* Verdict */}
       <div style={{
         background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 6,
         padding: 12, display: "flex", flexDirection: "column", gap: 8,
@@ -274,7 +266,6 @@ function RightPanel({ state, scenario }) {
         </div>
       </div>
 
-      {/* Metrics */}
       <div>
         <div className="label" style={{ marginBottom: 6 }}>Safety metrics</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
@@ -292,7 +283,6 @@ function RightPanel({ state, scenario }) {
         </div>
       </div>
 
-      {/* Ego state */}
       <div>
         <div className="label" style={{ marginBottom: 6 }}>Ego state</div>
         <div style={{ background: "var(--bg-1)", border: "1px solid var(--line)", borderRadius: 6, padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
@@ -315,7 +305,6 @@ function RightPanel({ state, scenario }) {
         </div>
       </div>
 
-      {/* Alerts */}
       <div>
         <div className="label" style={{ marginBottom: 6 }}>Event stream</div>
         <div style={{
@@ -354,5 +343,3 @@ function StatRow({ label, value, sub }) {
     </div>
   );
 }
-
-Object.assign(window, { LiveRunView });

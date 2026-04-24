@@ -1,25 +1,26 @@
 // Scenario Builder — top-down canvas where user drags actors/statics onto a map.
-const { useState: bUseState, useRef: bUseRef, useEffect: bUseEffect, useMemo: bUseMemo } = React;
+import { useState, useRef, useEffect } from "react";
+import { Icon } from "./common.jsx";
 
-function ScenarioBuilder({ onSave, onCancel, initial }) {
-  const [name, setName] = bUseState(initial?.name || "Untitled scenario");
-  const [map, setMap] = bUseState(initial?.map || "intersection_4way");
-  const [weather, setWeather] = bUseState(initial?.weather || "Clear");
-  const [tod, setTod] = bUseState(initial?.timeOfDay || "14:00");
-  const [density, setDensity] = bUseState(initial?.trafficDensity ?? 0.4);
-  const [seed, setSeed] = bUseState(initial?.seed || 42);
-  const [profile, setProfile] = bUseState(initial?.egoProfile || "Balanced");
-  const [items, setItems] = bUseState(() => {
+export function ScenarioBuilder({ onSave, onCancel, initial }) {
+  const [name, setName] = useState(initial?.name || "Untitled scenario");
+  const [map, setMap] = useState(initial?.map || "intersection_4way");
+  const [weather, setWeather] = useState(initial?.weather || "Clear");
+  const [tod, setTod] = useState(initial?.timeOfDay || "14:00");
+  const [density, setDensity] = useState(initial?.trafficDensity ?? 0.4);
+  const [seed, setSeed] = useState(initial?.seed || 42);
+  const [profile, setProfile] = useState(initial?.egoProfile || "Balanced");
+  const [items, setItems] = useState(() => {
     const base = initial ? [
       ...(initial.actors || []).map(a => ({ id: a.id, kind: a.kind, x: a.start[0], z: a.start[1], color: a.color })),
       ...(initial.statics || []).map((s, i) => ({ id: `S-${i}`, kind: s.kind, x: s.at[0], z: s.at[1], static: true, size: s.size })),
     ] : [];
     return base;
   });
-  const [egoStart, setEgoStart] = bUseState(initial?.ego?.start || [0, -70]);
-  const [egoGoal, setEgoGoal] = bUseState(initial?.ego?.goal || [0, 70]);
-  const [selected, setSelected] = bUseState(null);
-  const [drag, setDrag] = bUseState(null);
+  const [egoStart, setEgoStart] = useState(initial?.ego?.start || [0, -70]);
+  const [egoGoal, setEgoGoal] = useState(initial?.ego?.goal || [0, 70]);
+  const [selected, setSelected] = useState(null);
+  const [drag, setDrag] = useState(null);
 
   const size = 160;
   const canvasSize = 520;
@@ -37,9 +38,9 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
     { kind: "sign", icon: "alert", label: "Sign", static: true },
   ];
 
-  const canvasRef = bUseRef(null);
+  const canvasRef = useRef(null);
 
-  bUseEffect(() => {
+  useEffect(() => {
     const c = canvasRef.current;
     if (!c) return;
     const ctx = c.getContext("2d");
@@ -49,13 +50,11 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
     ctx.scale(dpr, dpr);
     ctx.fillStyle = "#0b1118";
     ctx.fillRect(0, 0, canvasSize, canvasSize);
-    // Grid
     ctx.strokeStyle = "rgba(120,160,190,0.07)";
     for (let i = 0; i <= canvasSize; i += canvasSize / 16) {
       ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvasSize); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvasSize, i); ctx.stroke();
     }
-    // Roads
     ctx.fillStyle = "#12181f";
     if (map === "intersection_4way") {
       ctx.fillRect(0, canvasSize / 2 - 13, canvasSize, 26);
@@ -63,7 +62,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
     } else {
       ctx.fillRect(0, canvasSize / 2 - 13, canvasSize, 26);
     }
-    // Lane dashes
     ctx.strokeStyle = "rgba(180,200,220,0.35)";
     ctx.setLineDash([6, 8]);
     ctx.beginPath(); ctx.moveTo(0, canvasSize / 2); ctx.lineTo(canvasSize, canvasSize / 2); ctx.stroke();
@@ -72,7 +70,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
     }
     ctx.setLineDash([]);
 
-    // Ego start/goal
     const [sx, sz] = egoStart, [gx, gz] = egoGoal;
     ctx.strokeStyle = "#2fd1c1";
     ctx.setLineDash([4, 4]);
@@ -91,7 +88,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
     ctx.fillStyle = "#0b1118";
     ctx.fillText("G", px(gx) - 3, px(gz) + 3);
 
-    // Items
     items.forEach((it) => {
       const x = px(it.x), y = px(it.z);
       const sel = selected === it.id;
@@ -225,7 +221,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 240px", overflow: "hidden" }}>
-          {/* Palette */}
           <div style={{ borderRight: "1px solid var(--line)", padding: 12, overflow: "auto" }}>
             <div className="label" style={{ marginBottom: 8 }}>Palette</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
@@ -256,7 +251,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
             </div>
           </div>
 
-          {/* Canvas */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--bg-0)" }}>
             <canvas ref={canvasRef}
               onMouseDown={(e) => {
@@ -279,7 +273,6 @@ function ScenarioBuilder({ onSave, onCancel, initial }) {
             </div>
           </div>
 
-          {/* Config */}
           <div style={{ borderLeft: "1px solid var(--line)", padding: 12, overflow: "auto", display: "flex", flexDirection: "column", gap: 12 }}>
             <Field label="Map">
               <select value={map} onChange={(e) => setMap(e.target.value)} className="mono" style={inputStyle}>
@@ -359,5 +352,3 @@ function Field({ label, children }) {
     </div>
   );
 }
-
-Object.assign(window, { ScenarioBuilder });

@@ -1,35 +1,46 @@
 // App shell — top bar, left nav, view router.
-const { useState: aUseState, useEffect: aUseEffect, useMemo: aUseMemo, useCallback: aUseCallback } = React;
+import { useState, useEffect, useCallback } from "react";
+import { Icon, Chip } from "./common.jsx";
+import { LiveRunView } from "./live_run.jsx";
+import { LibraryView } from "./library.jsx";
+import { MapView } from "./map_view.jsx";
+import { ScenarioBuilder } from "./scenario_builder.jsx";
+import { SCENARIOS, MAPS } from "../scenarios.js";
+import { backend } from "../backend.js";
+import { Simulation } from "../simulation.js";
 
-function App() {
-  const [scenarios, setScenarios] = aUseState([...window.SCENARIOS]);
-  const [view, setView] = aUseState("live"); // live | library | map
-  const [current, setCurrent] = aUseState(null); // {sim, run, scenario}
-  const [builderOpen, setBuilderOpen] = aUseState(false);
-  const [builderInitial, setBuilderInitial] = aUseState(null);
-  const [workspace] = aUseState("ws · scenario_val · v0.7-rc");
+export function App() {
+  const [scenarios, setScenarios] = useState([...SCENARIOS]);
+  const [view, setView] = useState("live");
+  const [current, setCurrent] = useState(null);
+  const [builderOpen, setBuilderOpen] = useState(false);
+  const [builderInitial, setBuilderInitial] = useState(null);
+  const [workspace] = useState("ws · scenario_val · v0.7-rc");
 
-  // Auto-launch hero scenario on first load for immediate demo
-  aUseEffect(() => {
-    const hero = scenarios.find(s => s.id === "SC-042-intersection-cross");
-    if (hero) launch(hero);
-    // eslint-disable-next-line
-  }, []);
-
-  const launch = aUseCallback(async (scenario) => {
-    // stop any existing
-    if (current?.sim) current.sim.stop();
-    const run = await window.backend.createRun(scenario.id);
-    const sim = new window.Simulation(run);
+  const launch = useCallback(async (scenario) => {
+    setCurrent((prev) => {
+      if (prev?.sim) prev.sim.stop();
+      return prev;
+    });
+    const run = await backend.createRun(scenario.id);
+    const sim = new Simulation(run);
     setCurrent({ sim, run, scenario });
     setView("live");
-  }, [current]);
+  }, []);
 
-  const endRun = aUseCallback(() => {
-    if (current?.sim) current.sim.stop();
-    setCurrent(null);
+  useEffect(() => {
+    const hero = scenarios.find(s => s.id === "SC-042-intersection-cross");
+    if (hero) launch(hero);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const endRun = useCallback(() => {
+    setCurrent((prev) => {
+      if (prev?.sim) prev.sim.stop();
+      return null;
+    });
     setView("library");
-  }, [current]);
+  }, []);
 
   const onNewScenario = () => {
     setBuilderInitial(null);
@@ -42,7 +53,7 @@ function App() {
   };
 
   const onSaveScenario = async (sc) => {
-    const saved = await window.backend.createScenario(sc);
+    const saved = await backend.createScenario(sc);
     setScenarios((prev) => [saved, ...prev.filter(s => s.id !== saved.id)]);
     setBuilderOpen(false);
     launch(saved);
@@ -50,7 +61,7 @@ function App() {
 
   const exportRun = async () => {
     if (!current) return;
-    const data = await window.backend.exportRun(current.run.id);
+    const data = await backend.exportRun(current.run.id);
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -61,7 +72,6 @@ function App() {
 
   return (
     <div style={{ height: "100vh", display: "grid", gridTemplateRows: "44px 1fr", overflow: "hidden" }}>
-      {/* Top bar */}
       <div style={{
         display: "grid", gridTemplateColumns: "auto 1fr auto",
         alignItems: "center",
@@ -108,18 +118,15 @@ function App() {
         </div>
       </div>
 
-      {/* Main */}
       <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", overflow: "hidden" }}>
-        {/* Left nav */}
         <div style={{ borderRight: "1px solid var(--line)", background: "var(--bg-1)", display: "flex", flexDirection: "column", padding: 10, gap: 2 }}>
           <div className="label" style={{ padding: "4px 6px", marginBottom: 4 }}>Navigation</div>
           <NavItem icon="chase" label="Live Run" active={view === "live"} onClick={() => setView("live")} disabled={!current} sub={current ? current.run.id : "no active run"} />
           <NavItem icon="library" label="Library" active={view === "library"} onClick={() => setView("library")} sub={`${scenarios.length} scenarios`} />
-          <NavItem icon="map" label="Map / OpenDRIVE" active={view === "map"} onClick={() => setView("map")} sub={`${Object.keys(window.MAPS).length} maps`} />
+          <NavItem icon="map" label="Map / OpenDRIVE" active={view === "map"} onClick={() => setView("map")} sub={`${Object.keys(MAPS).length} maps`} />
 
           <div style={{ flex: 1 }} />
 
-          {/* Mini legend */}
           <div style={{
             background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 4,
             padding: 10, display: "flex", flexDirection: "column", gap: 6,
@@ -137,7 +144,6 @@ function App() {
           </div>
         </div>
 
-        {/* View area */}
         <div style={{ overflow: "hidden", background: "var(--bg-0)" }}>
           {view === "live" && current && (
             <LiveRunView
@@ -241,5 +247,3 @@ function EmptyState({ onGo }) {
     </div>
   );
 }
-
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
