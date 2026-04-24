@@ -1,0 +1,167 @@
+/* ADAS Rewired — Design tokens
+   Dark technical cockpit. Deep charcoal, neon accents, mono type.
+*/
+:root {
+  /* Surfaces */
+  --bg-0: #07090c;           /* page */
+  --bg-1: #0c1015;           /* panel */
+  --bg-2: #111720;           /* raised */
+  --bg-3: #161e29;           /* hover / control */
+  --bg-4: #1d2733;           /* border-on-dark emphasis */
+  --line: #1a2230;           /* hairline */
+  --line-2: #232e3e;         /* stronger divider */
+
+  /* Text */
+  --fg-0: #e7edf3;           /* primary */
+  --fg-1: #a7b2c0;           /* secondary */
+  --fg-2: #6b7686;           /* tertiary / labels */
+  --fg-3: #465060;           /* dim */
+
+  /* Accents — single-chroma family (~0.17 c, ~0.78 l) */
+  --accent:       oklch(0.82 0.17 180);    /* cyan — primary signal */
+  --accent-soft:  oklch(0.82 0.17 180 / 0.16);
+  --accent-line:  oklch(0.82 0.17 180 / 0.32);
+
+  --pass:         oklch(0.82 0.17 150);    /* green */
+  --pass-soft:    oklch(0.82 0.17 150 / 0.18);
+
+  --warn:         oklch(0.84 0.17 85);     /* amber */
+  --warn-soft:    oklch(0.84 0.17 85 / 0.18);
+
+  --fail:         oklch(0.72 0.19 25);     /* red */
+  --fail-soft:    oklch(0.72 0.19 25 / 0.2);
+
+  --mag:          oklch(0.78 0.17 320);    /* magenta — perception */
+  --mag-soft:     oklch(0.78 0.17 320 / 0.18);
+
+  /* Type */
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-sans: "Inter Tight", "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+
+  /* Radius & spacing */
+  --r-0: 2px;
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+
+  /* Elevation */
+  --shadow-1: 0 1px 0 rgba(255,255,255,0.02) inset, 0 0 0 1px var(--line);
+  --shadow-2: 0 8px 24px rgba(0,0,0,0.45), 0 0 0 1px var(--line);
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--fg-0);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+}
+
+/* Utility */
+.mono { font-family: var(--font-mono); font-feature-settings: "ss01","cv11"; letter-spacing: 0.01em; }
+.label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--fg-2); }
+.hair { border: 0; border-top: 1px solid var(--line); margin: 0; }
+.scroll { overflow: auto; }
+.scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 4px; }
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+input, select, textarea { font: inherit; color: inherit; }
+
+/* Grid paper backdrop for viewports / editors */
+.graph-bg {
+  background-image:
+    linear-gradient(rgba(120,160,190,0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,160,190,0.045) 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px;
+}
+.graph-bg-fine {
+  background-image:
+    linear-gradient(rgba(120,160,190,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,160,190,0.06) 1px, transparent 1px),
+    linear-gradient(rgba(120,160,190,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120,160,190,0.03) 1px, transparent 1px);
+  background-size: 96px 96px, 96px 96px, 16px 16px, 16px 16px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 7px;
+  border-radius: var(--r-1);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  line-height: 1.6;
+}
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--fg-2); }
+.chip.accent { color: var(--accent); border-color: var(--accent-line); background: var(--accent-soft); }
+.chip.pass   { color: var(--pass); border-color: color-mix(in oklch, var(--pass), transparent 60%); background: var(--pass-soft); }
+.chip.warn   { color: var(--warn); border-color: color-mix(in oklch, var(--warn), transparent 60%); background: var(--warn-soft); }
+.chip.fail   { color: var(--fail); border-color: color-mix(in oklch, var(--fail), transparent 60%); background: var(--fail-soft); }
+.chip.mag    { color: var(--mag);  border-color: color-mix(in oklch, var(--mag),  transparent 60%); background: var(--mag-soft); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px;
+  border-radius: var(--r-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  color: var(--fg-0);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  transition: background 120ms, border-color 120ms, color 120ms;
+}
+.btn:hover { background: var(--bg-3); border-color: var(--fg-3); }
+.btn.primary {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+.btn.primary:hover { background: color-mix(in oklch, var(--accent), transparent 70%); }
+.btn.ghost { background: transparent; border-color: var(--line); }
+.btn.danger { color: var(--fail); border-color: color-mix(in oklch, var(--fail), transparent 60%); background: var(--fail-soft); }
+
+.kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--fg-2);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+}
+
+/* panels */
+.panel {
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-2);
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+}
+.panel-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-1);
+}
