@@ -36,6 +36,8 @@ export function Icon({ name, size = 14, stroke = 1.5 }) {
     alert: <g><path d="M12 2l10 18H2z" /><line x1="12" y1="9" x2="12" y2="14" /><circle cx="12" cy="17" r="0.5" /></g>,
     sensor: <g><path d="M2 12a10 10 0 0 1 20 0" /><path d="M6 12a6 6 0 0 1 12 0" /><circle cx="12" cy="12" r="1.5" /></g>,
     route: <g><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6" /></g>,
+    volume: <g><polygon points="3 10 3 14 7 14 12 19 12 5 7 10 3 10" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18 6a9 9 0 0 1 0 12" /></g>,
+    mute: <g><polygon points="3 10 3 14 7 14 12 19 12 5 7 10 3 10" /><line x1="17" y1="9" x2="22" y2="14" /><line x1="22" y1="9" x2="17" y2="14" /></g>,
   };
   return <svg {...common}>{paths[name] || null}</svg>;
 }

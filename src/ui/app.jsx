@@ -8,6 +8,7 @@ import { ScenarioBuilder } from "./scenario_builder.jsx";
 import { SCENARIOS, MAPS } from "../scenarios.js";
 import { backend } from "../backend.js";
 import { Simulation } from "../simulation.js";
+import { audio } from "../audio.js";
 
 export function App() {
   const [scenarios, setScenarios] = useState([...SCENARIOS]);
@@ -16,6 +17,33 @@ export function App() {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [builderInitial, setBuilderInitial] = useState(null);
   const [workspace] = useState("ws · scenario_val · v0.7-rc");
+  const [audioOn, setAudioOn] = useState(false);
+  const [muted, setMuted] = useState(false);
+
+  // Browsers gate AudioContext behind a user gesture. Attach a one-shot
+  // pointer/key listener that unlocks audio on the first interaction.
+  useEffect(() => {
+    const unlock = async () => {
+      await audio.init();
+      setAudioOn(true);
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+    document.addEventListener("pointerdown", unlock, { once: true });
+    document.addEventListener("keydown", unlock, { once: true });
+    return () => {
+      document.removeEventListener("pointerdown", unlock);
+      document.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  const toggleMute = useCallback(() => {
+    setMuted((m) => {
+      const next = !m;
+      audio.setEnabled(!next);
+      return next;
+    });
+  }, []);
 
   const launch = useCallback(async (scenario) => {
     setCurrent((prev) => {
@@ -114,6 +142,14 @@ export function App() {
             <Icon name="export" size={12} /> EXPORT
           </button>
           <div style={{ width: 1, background: "var(--line-2)", margin: "0 4px" }} />
+          <button
+            className="btn ghost"
+            onClick={toggleMute}
+            title={audioOn ? (muted ? "Unmute" : "Mute") : "Click anywhere to enable audio"}
+            style={{ color: !audioOn ? "var(--fg-3)" : muted ? "var(--fg-2)" : "var(--accent)" }}
+          >
+            <Icon name={muted || !audioOn ? "mute" : "volume"} size={12} />
+          </button>
           <button className="btn ghost" title="Settings"><Icon name="gear" size={12} /></button>
         </div>
       </div>

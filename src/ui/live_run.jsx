@@ -4,6 +4,7 @@ import { Icon, Chip, Bar, Metric, VerdictBadge } from "./common.jsx";
 import { CameraTile, LidarTile, RadarTile } from "./sensor_tiles.jsx";
 import { Scene3D } from "../scene3d.js";
 import { MAPS } from "../scenarios.js";
+import { audio } from "../audio.js";
 
 export function LiveRunView({ sim, run, scenario, onEnd }) {
   const [state, setState] = useState(() => sim.snapshot());
@@ -22,13 +23,56 @@ export function LiveRunView({ sim, run, scenario, onEnd }) {
   }, [scenario]);
 
   useEffect(() => {
+    // Per-scenario audio: ignition + engine hum, plus rain bed when wet.
+    audio.ignition();
+    audio.startEngine();
+    if (scenario.weather === "Rain") audio.startRain();
+
+    // Pedestrian footsteps — fire at a rate tied to count + speed.
+    const pedTick = setInterval(() => {
+      const snap = sim.snapshot();
+      const moving = snap.actors.filter((a) => a.kind === "pedestrian" && a.v > 0.2);
+      if (moving.length && Math.random() < 0.55) audio.footstep();
+    }, 360);
+
+    let lastBraking = false;
+    let lastVerdict = "MONITORING";
+    let lastAlerts = 0;
+
     const un = sim.onTick((snap) => {
       setState(snap);
       sceneRef.current?.update(snap);
+      audio.updateEngine(snap.ego.v);
+
+      if (snap.ego.braking && !lastBraking && snap.ego.v > 1.5) audio.brakeSqueal();
+      lastBraking = snap.ego.braking;
+
+      if (snap.alerts.length > lastAlerts) {
+        const latest = snap.alerts[0];
+        if (latest && latest.level === "warn") audio.alertBeep("warn");
+      }
+      lastAlerts = snap.alerts.length;
+
+      if (snap.verdict !== lastVerdict) {
+        if (snap.verdict === "FAIL") {
+          audio.collision();
+          setTimeout(() => audio.failBuzzer(), 600);
+        } else if (snap.verdict === "PASS") {
+          audio.passChime();
+        }
+        lastVerdict = snap.verdict;
+      }
     });
     sim.start();
-    return () => { un(); sim.stop(); };
-  }, [sim]);
+
+    return () => {
+      un();
+      sim.stop();
+      clearInterval(pedTick);
+      audio.stopEngine();
+      audio.stopRain();
+    };
+  }, [sim, scenario]);
 
   const togglePlay = () => {
     if (state.finished) { onEnd(); return; }
