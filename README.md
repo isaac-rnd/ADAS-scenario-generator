@@ -135,7 +135,3 @@ Dev mode always uses `/` regardless of `BASE_PATH`.
 - **New scenario** — add an entry to `SCENARIOS` in `src/scenarios.js` following the existing shape (`ego.waypoints`, `actors`, `statics`).
 - **New actor type** — add to `ACTOR_KINDS` in `scenarios.js` and a case in `Scene3D._makeActor` (src/scene3d.js).
 - **Real backend** — `src/backend.js` is the integration point. Replace the in-memory `Map`s with `fetch` / WebSocket calls; `backend.subscribeRun(id, cb)` is designed to map onto a WS stream.
-
-## License
-
-No license specified — treat as All Rights Reserved unless the repo owner adds one.
