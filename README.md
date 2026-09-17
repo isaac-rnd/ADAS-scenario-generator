@@ -1,6 +1,6 @@
 # ADAS Rewired · Scenario Control
 
-A browser-based ADAS (Advanced Driver Assistance Systems) scenario simulator rendered as a dark "cockpit" UI. Loads seeded scenarios (intersection with crossing traffic, pedestrian crossing, construction zone, unavoidable diversion), animates scripted-waypoint traffic in a real Three.js viewport, scores each run against a live safety envelope (collision → FAIL, completion → PASS), and plays a synthesized automotive soundscape while you drive.
+A browser-based ADAS (Advanced Driver Assistance Systems) scenario simulator rendered. Loads seeded scenarios (intersection with crossing traffic, pedestrian crossing, construction zone, unavoidable diversion), animates scripted-waypoint traffic in a real Three.js viewport, scores each run against a live safety envelope (collision → FAIL, completion → PASS), and plays a synthesized automotive soundscape while you drive.
 
 > **Live demo:** https://isaac-rnd.github.io/ADAS-scenario-generator/
 
