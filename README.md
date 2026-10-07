@@ -504,15 +504,6 @@ Runtime configuration in the UI:
 
 ---
 
-## Performance notes
-
-- Production bundle ~720 KB (≈195 KB gzipped) — mostly Three.js. Acceptable for a simulator; code-split with `import()` if you embed it in a larger app.
-- The sim runs at 30 Hz on a `setInterval`. React re-renders only the metrics/HUD (cheap); the 3D scene is mutated imperatively per tick via `sceneRef.current.update(snap)`.
-- Sensor tiles repaint per tick at the tile's pixel size via `ResizeObserver` — DPR-aware (capped at 2× to avoid needless fill on retina).
-- Audio is node-based Web Audio: 4 ambient oscillators + 2 engine oscillators + LFOs during a run — well under CPU budget.
-
----
-
 ## License
 
 No license specified — treat as All Rights Reserved unless the repo owner adds one.
